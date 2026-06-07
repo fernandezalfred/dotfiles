@@ -50,6 +50,15 @@ return {
       })
 
       opts.presets.lsp_doc_border = true
+
+      opts.views = vim.tbl_deep_extend("force", opts.views or {}, {
+        hover = {
+          border = { style = "rounded" },
+          size = { max_width = 120, max_height = 40 },
+          scrollbar = true,
+          scrollbar_right_padding = 1,
+        },
+      })
     end,
   },
 

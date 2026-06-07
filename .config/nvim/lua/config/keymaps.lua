@@ -44,7 +44,7 @@ keymap.set("n", "dw", 'vb"_d')
 -- Select all text in the current buffer
 keymap.set("n", "<C-a>", "gg<S-v>G")
 
--- Insert a new empty line below or above without entering insert mode
+-- Open a new line below/above, clearing auto-indent, and enter insert mode
 keymap.set("n", "<Leader>o", "o<Esc>^Da", opts)
 keymap.set("n", "<Leader>O", "O<Esc>^Da", opts)
 
@@ -88,22 +88,17 @@ keymap.set("n", "<C-j>", function()
 end, opts)
 
 -- =========================================================
--- Craftzdog custom commands (require craftzdog plugin)
+-- LSP utilities
 -- =========================================================
-
--- Replace hex colors with HSL format
-keymap.set("n", "<leader>r", function()
-  require("craftzdog.hsl").replaceHexWithHSL()
-end)
 
 -- Toggle inlay hints (LSP feature)
 keymap.set("n", "<leader>i", function()
-  require("craftzdog.lsp").toggleInlayHints()
-end)
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled())
+end, { desc = "Toggle inlay hints" })
 
 -- Command to toggle autoformatting
 vim.api.nvim_create_user_command("ToggleAutoformat", function()
-  require("craftzdog.lsp").toggleAutoformat()
+  require("lazyvim.util").format.toggle()
 end, {})
 
 -- =========================================================

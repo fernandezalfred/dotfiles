@@ -1,4 +1,23 @@
 return {
+  {
+    "luckasRanarison/tailwind-tools.nvim",
+    name = "tailwind-tools",
+    build = ":UpdateRemotePlugins",
+    dependencies = {
+      "nvim-treesitter/nvim-treesitter",
+      "neovim/nvim-lspconfig",
+    },
+    opts = {
+      document_color = {
+        enabled = true,
+        kind = "inline", -- "inline" | "foreground" | "background"
+      },
+      conceal = {
+        enabled = false,
+      },
+    },
+  },
+
   -- tools
   {
     "mason-org/mason.nvim",
@@ -19,19 +38,64 @@ return {
   -- lsp servers
   {
     "neovim/nvim-lspconfig",
-    opts = {
-      inlay_hints = { enabled = false },
-      ---@type lspconfig.options
-      servers = {
+    init = function()
+      -- Increase hover window limits so full docs render (noice handles the actual display)
+      local orig_hover = vim.lsp.handlers["textDocument/hover"]
+      vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(orig_hover or vim.lsp.handlers.hover, {
+        max_width = 120,
+        max_height = 40,
+      })
+    end,
+    opts = function(_, opts)
+      -- keymaps
+      local keys = require("lazyvim.plugins.lsp.keymaps").get()
+      vim.list_extend(keys, {
+        {
+          "gd",
+          function()
+            -- DO NOT RESUSE WINDOW
+            require("telescope.builtin").lsp_definitions({ reuse_win = false })
+          end,
+          desc = "Goto Definition",
+          has = "definition",
+        },
+      })
+
+      -- servers
+      opts.servers = vim.tbl_deep_extend("force", opts.servers or {}, {
         cssls = {},
         tailwindcss = {
-          root_dir = function(...)
-            return require("lspconfig.util").root_pattern(".git")(...)
+          root_dir = function(fname)
+            return vim.fs.root(fname, ".git")
           end,
+          filetypes = {
+            "html",
+            "mdx",
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact",
+            "css",
+            "postcss",
+          },
+          settings = {
+            tailwindCSS = {
+              experimental = {
+                classRegex = {
+                  { "clsx\\(([^)]*)\\)", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                  { "cn\\(([^)]*)\\)", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                  { "cva\\(([^)]*)\\)", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                  { "cx\\(([^)]*)\\)", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                  { "tv\\(([^)]*)\\)", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                  { "variants:\\s*\\{([^}]*)\\}", "(?:'|\"|`)([^'\"` ]*?)(?:'|\"|`)" },
+                },
+              },
+            },
+          },
         },
-        tsserver = {
-          root_dir = function(...)
-            return require("lspconfig.util").root_pattern(".git")(...)
+        ts_ls = {
+          root_dir = function(fname)
+            return vim.fs.root(fname, ".git")
           end,
           single_file_support = false,
           settings = {
@@ -131,24 +195,6 @@ return {
               },
             },
           },
-        },
-      },
-      setup = {},
-    },
-  },
-  {
-    "neovim/nvim-lspconfig",
-    opts = function()
-      local keys = require("lazyvim.plugins.lsp.keymaps").get()
-      vim.list_extend(keys, {
-        {
-          "gd",
-          function()
-            -- DO NOT RESUSE WINDOW
-            require("telescope.builtin").lsp_definitions({ reuse_win = false })
-          end,
-          desc = "Goto Definition",
-          has = "definition",
         },
       })
     end,
