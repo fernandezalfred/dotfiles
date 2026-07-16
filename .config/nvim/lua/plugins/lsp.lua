@@ -18,6 +18,14 @@ return {
     },
   },
 
+  -- treesitter parsers (syntax highlighting / colorization)
+  {
+    "nvim-treesitter/nvim-treesitter",
+    opts = function(_, opts)
+      vim.list_extend(opts.ensure_installed, { "prisma" })
+    end,
+  },
+
   -- tools
   {
     "mason-org/mason.nvim",
@@ -31,6 +39,7 @@ return {
         "tailwindcss-language-server",
         "typescript-language-server",
         "css-lsp",
+        "prisma-language-server",
       })
     end,
   },
@@ -40,16 +49,21 @@ return {
     "neovim/nvim-lspconfig",
     init = function()
       -- Increase hover window limits so full docs render (noice handles the actual display)
-      local orig_hover = vim.lsp.handlers["textDocument/hover"]
-      vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(orig_hover or vim.lsp.handlers.hover, {
-        max_width = 120,
-        max_height = 40,
-      })
+      local orig_hover = vim.lsp.buf.hover
+      vim.lsp.buf.hover = function(config)
+        config = config or {}
+        config.max_width = config.max_width or 120
+        config.max_height = config.max_height or 40
+        return orig_hover(config)
+      end
     end,
     opts = function(_, opts)
-      -- keymaps
-      local keys = require("lazyvim.plugins.lsp.keymaps").get()
-      vim.list_extend(keys, {
+      -- keymaps: override the default `gd` for all servers via the "*" config.
+      -- (Replaces the deprecated `require("lazyvim.plugins.lsp.keymaps").get()`.)
+      opts.servers = opts.servers or {}
+      opts.servers["*"] = opts.servers["*"] or {}
+      opts.servers["*"].keys = opts.servers["*"].keys or {}
+      vim.list_extend(opts.servers["*"].keys, {
         {
           "gd",
           function()
@@ -64,6 +78,7 @@ return {
       -- servers
       opts.servers = vim.tbl_deep_extend("force", opts.servers or {}, {
         cssls = {},
+        prismals = {},
         tailwindcss = {
           root_dir = function(fname)
             return vim.fs.root(fname, ".git")

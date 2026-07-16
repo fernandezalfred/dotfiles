@@ -69,20 +69,6 @@ return {
     },
   },
 
-  {
-    "snacks.nvim",
-    opts = {
-      scroll = { enabled = false },
-      explorer = {
-        hidden = true,
-      },
-      picker = {
-        hidden = true,
-      },
-    },
-    keys = {},
-  },
-
   -- filename
   {
     "b0o/incline.nvim",
@@ -154,7 +140,11 @@ return {
 
   {
     "folke/snacks.nvim",
+    keys = {},
     opts = {
+      scroll = { enabled = false },
+      explorer = { hidden = true },
+      picker = { hidden = true },
       dashboard = {
         preset = {
           header = [[

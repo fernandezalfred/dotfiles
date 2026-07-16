@@ -84,7 +84,7 @@ keymap.set("n", "<C-w><down>", "<C-w>-")
 
 -- Jump to next diagnostic message
 keymap.set("n", "<C-j>", function()
-  vim.diagnostic.goto_next()
+  vim.diagnostic.jump({ count = 1, float = true })
 end, opts)
 
 -- =========================================================
